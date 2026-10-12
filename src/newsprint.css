@@ -1,0 +1,243 @@
+/* The Newsprint edition is a separate front end over the shared simulator. */
+:root[data-design=newsprint]{--paper:#F9F9F7;--ink:#111111;--theme-accent:#CC0000;--theme-secondary:#E5E5E0;--theme-third:#F9F9F7;--theme-quiet:#E5E5E0;--mint:#111111;--border:#111111;--muted:#525252;background:var(--paper);color:var(--ink);font-family:'Lora',Georgia,serif;color-scheme:light}
+:root[data-design=newsprint] body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23111111' fill-opacity='0.04' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'/%3E%3C/svg%3E")}
+:root[data-design=newsprint] *,:root[data-design=newsprint] *:before,:root[data-design=newsprint] *:after{border-radius:0!important}
+:root[data-design=newsprint] button,:root[data-design=newsprint] select,:root[data-design=newsprint] summary{font-family:'Inter','Helvetica Neue',sans-serif}
+:root[data-design=newsprint] h1,:root[data-design=newsprint] h2,:root[data-design=newsprint] h3{font-family:'Playfair Display','Times New Roman',serif}
+:root[data-design=newsprint] svg{stroke-width:1.5}
+:root[data-design=newsprint] .mono,:root[data-design=newsprint] .edition-label,:root[data-design=newsprint] .edition-bar,:root[data-design=newsprint] .edition-section-rule,:root[data-design=newsprint] .deck-byline,:root[data-design=newsprint] .figure-caption,:root[data-design=newsprint] .edition-colophon,:root[data-design=newsprint] .range-label output,:root[data-design=newsprint] .timeline-ticks{font-family:'JetBrains Mono','Courier New',monospace}
+:root[data-design=newsprint] .app-header{display:grid;grid-template-columns:190px minmax(0,1fr) 190px;gap:20px;max-width:1280px;margin:auto;height:124px;background:transparent;padding:0 24px;border-bottom:4px solid var(--ink)}
+:root[data-design=newsprint] .brand{grid-column:2;grid-row:1;justify-self:center;font-family:'Playfair Display','Times New Roman',serif;text-transform:none;font-weight:900;font-size:clamp(34px,4.1vw,56px);letter-spacing:-2.2px;white-space:nowrap}
+:root[data-design=newsprint] .header-center{grid-column:1;grid-row:1;display:block;font-size:10px;line-height:1.8;letter-spacing:1.5px;border-left:2px solid var(--ink);padding-left:12px}
+:root[data-design=newsprint] .about-button{grid-column:3;grid-row:1;justify-self:end;background:transparent;border:1px solid var(--ink);box-shadow:none;font-size:10px;padding:10px 12px;min-height:44px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink)}
+:root[data-design=newsprint] .about-button:hover{background:var(--ink);color:var(--paper)}
+:root[data-design=newsprint] .edition-bar{max-width:1280px;margin:auto;display:flex;justify-content:space-between;gap:12px;padding:12px 24px;border-bottom:1px solid var(--ink);font-size:9px;letter-spacing:1px}
+:root[data-design=newsprint] .main-shell{max-width:1280px;padding:36px 24px 0}
+:root[data-design=newsprint] .page-intro{grid-template-columns:minmax(0,1fr) 305px;gap:32px;margin-bottom:30px;align-items:stretch}
+:root[data-design=newsprint] .intro-copy{padding-right:12px}
+:root[data-design=newsprint] .eyebrow{font-family:'Inter',sans-serif;font-size:9px;letter-spacing:1.6px;font-weight:600}
+:root[data-design=newsprint] .tiny-cross{display:none}
+:root[data-design=newsprint] h1{font-weight:900;font-size:clamp(48px,6.4vw,86px);line-height:.99;letter-spacing:-3.7px;margin:18px 0 18px}
+:root[data-design=newsprint] h1 em{font-weight:400;letter-spacing:-3px}
+:root[data-design=newsprint] .page-intro .intro-copy p{font-size:15px;line-height:1.7;max-width:660px;margin:0;color:#404040}
+:root[data-design=newsprint] .newsprint-deck{border-left:1px solid var(--ink);padding:4px 0 0 24px}
+:root[data-design=newsprint] .edition-label{font-size:9px;letter-spacing:1.5px;line-height:1.8}
+:root[data-design=newsprint] .newsprint-deck h2{font-size:27px;letter-spacing:-.7px;line-height:1.14;margin:14px 0}
+:root[data-design=newsprint] .newsprint-deck p{font-size:13px;line-height:1.7;margin:0;text-align:justify;color:#404040}
+:root[data-design=newsprint] .drop-cap:first-letter{float:left;font-family:'Playfair Display',serif;font-size:58px;font-weight:900;line-height:.88;margin:5px 7px 0 0;color:var(--ink)}
+:root[data-design=newsprint] .deck-byline{font-size:8px;letter-spacing:1.25px;border-top:1px solid var(--ink);padding-top:14px;margin-top:16px}
+:root[data-design=newsprint] .edition-ticker{overflow:hidden;background:var(--ink);color:var(--paper);border:1px solid var(--ink)}
+:root[data-design=newsprint] .ticker-reel{display:flex;width:max-content;animation:newsprint-crawl 45s linear infinite}
+:root[data-design=newsprint] .edition-ticker:hover .ticker-reel{animation-play-state:paused}
+:root[data-design=newsprint] .ticker-copy{display:flex;align-items:center;gap:26px;flex-shrink:0;padding:12px 26px 12px 0;font:9px 'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap}
+:root[data-design=newsprint] .ticker-badge{color:#fff;background:var(--theme-accent);padding:5px 10px;font:600 9px 'Inter',sans-serif;letter-spacing:1px;margin-left:14px}
+:root[data-design=newsprint] .ticker-copy b{font-size:12px;font-weight:400}
+:root[data-design=newsprint] .edition-section-rule{display:flex;justify-content:space-between;gap:16px;border-top:4px solid var(--ink);border-bottom:1px solid var(--ink);margin-top:24px;padding:12px 0;font-size:9px;letter-spacing:1px}
+:root[data-design=newsprint] .workspace{grid-template-columns:minmax(0,1fr) 320px;gap:0;border:1px solid var(--ink);border-top:0;align-items:stretch}
+:root[data-design=newsprint] .simulation-card{height:720px;border:0;border-right:1px solid var(--ink);box-shadow:none;background:var(--paper)}
+:root[data-design=newsprint] .settings-panel{height:720px;border:0;box-shadow:none;background:var(--paper)}
+:root[data-design=newsprint] .scene-top{left:14px;right:14px;top:14px;padding:12px;border:1px solid var(--ink);border-bottom:3px solid var(--ink);background:var(--paper)}
+:root[data-design=newsprint] .scene-heading h2{font-size:23px;line-height:1.2;text-transform:none;font-weight:700;color:var(--ink)}
+:root[data-design=newsprint] .scene-top p{font-family:'Lora',Georgia,serif;font-size:11px;color:#404040}
+:root[data-design=newsprint] .status-chip{background:var(--paper);border:1px solid var(--ink);box-shadow:none;color:var(--ink);font:500 8px 'JetBrains Mono',monospace;letter-spacing:.8px;text-transform:uppercase;padding:5px 7px}
+:root[data-design=newsprint] .status-chip.chaotic{background:var(--theme-accent);color:#fff;border-color:var(--theme-accent)}
+:root[data-design=newsprint] .scene-actions .icon-button{background:var(--paper);border:1px solid var(--ink);box-shadow:none;min-width:44px;height:44px;color:var(--ink)}
+:root[data-design=newsprint] .icon-button:hover,:root[data-design=newsprint] .view-button:hover{background:var(--ink);color:var(--paper)}
+:root[data-design=newsprint] .scene-bottom{left:14px;right:14px;bottom:14px;padding:10px 12px;border:1px solid var(--ink);background:var(--paper);flex-wrap:wrap;gap:12px}
+:root[data-design=newsprint] .figure-caption{font-size:8px;letter-spacing:.8px}
+:root[data-design=newsprint] .scene-legend{font:500 9px 'Inter',sans-serif;gap:14px}
+:root[data-design=newsprint] .scene-legend i{box-shadow:none;border:1px solid var(--ink)}
+:root[data-design=newsprint] .orbit-hint{font:9px 'Inter',sans-serif;gap:5px}
+:root[data-design=newsprint] .view-controls{left:14px;bottom:72px;box-shadow:none;border:1px solid var(--ink);gap:0;padding:0;background:var(--paper)}
+:root[data-design=newsprint] .view-button{min-height:44px;font-size:10px;font-weight:500;padding:10px 14px}
+:root[data-design=newsprint] .view-button.active{background:var(--ink);color:var(--paper)}
+:root[data-design=newsprint] .fit-button{height:44px;min-width:44px;border-left:1px solid var(--ink)}
+:root[data-design=newsprint] .body-label{font:8px 'JetBrains Mono',monospace;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:4px 5px}
+:root[data-design=newsprint] .timeline-panel{background:var(--ink);color:var(--paper);border-top:4px solid var(--ink);padding:18px 20px 16px}
+:root[data-design=newsprint] .timeline-panel .small-label{color:var(--paper);font:500 9px 'Inter',sans-serif;letter-spacing:1.6px}
+:root[data-design=newsprint] .timeline-panel .live-text,:root[data-design=newsprint] .timeline-panel .mono,:root[data-design=newsprint] .timeline-panel .time-unit,:root[data-design=newsprint] .timeline-ticks{color:var(--paper);font-size:9px;font-weight:400}
+:root[data-design=newsprint] .timeline-panel .green-dot{background:var(--paper);width:4px;height:4px}
+:root[data-design=newsprint] .timeline-panel .muted-dot{background:#A3A3A3}
+:root[data-design=newsprint] .timeline-track{padding-bottom:22px}
+:root[data-design=newsprint] .timeline-track input{height:26px}
+:root[data-design=newsprint] .timeline-track input::-webkit-slider-runnable-track{height:3px;background:#737373}
+:root[data-design=newsprint] .timeline-track input::-moz-range-track{height:3px;background:#737373}
+:root[data-design=newsprint] .timeline-track input::-moz-range-progress{height:3px;background:var(--paper)}
+:root[data-design=newsprint] .timeline-track input::-webkit-slider-thumb{width:11px;height:20px;border:1px solid var(--paper);margin-top:-8px;background:var(--paper);box-shadow:none}
+:root[data-design=newsprint] .timeline-track input::-moz-range-thumb{width:9px;height:18px;border:1px solid var(--paper);background:var(--paper);box-shadow:none}
+:root[data-design=newsprint] .transport{gap:5px}
+:root[data-design=newsprint] .transport .icon-button{min-width:44px;height:44px;border:1px solid #737373;color:var(--paper)}
+:root[data-design=newsprint] .transport .icon-button:hover:enabled{background:var(--paper);color:var(--ink)}
+:root[data-design=newsprint] .play-button{height:44px;width:48px;background:var(--paper);color:var(--ink);border:1px solid var(--paper);box-shadow:none}
+:root[data-design=newsprint] .play-button:hover{background:var(--theme-accent);border-color:var(--theme-accent);color:#fff}
+:root[data-design=newsprint] .transport-divider{background:#737373;height:25px;width:1px;margin:0 4px}
+:root[data-design=newsprint] .speed-control{background:var(--ink);border:1px solid #737373;height:44px;min-width:65px}
+:root[data-design=newsprint] .speed-control select{color:var(--paper);font:10px 'JetBrains Mono',monospace;min-height:44px}
+:root[data-design=newsprint] .speed-control svg{color:var(--paper)}
+:root[data-design=newsprint] .jump-live{border:1px solid #737373;background:var(--ink);color:var(--paper);box-shadow:none;font:500 9px 'Inter',sans-serif;letter-spacing:.7px;text-transform:uppercase;min-height:44px;padding:10px 12px}
+:root[data-design=newsprint] .jump-live:hover:enabled{background:var(--paper);color:var(--ink)}
+:root[data-design=newsprint] .settings-heading{background:var(--paper);border-bottom:4px solid var(--ink);padding:20px 18px;min-height:74px}
+:root[data-design=newsprint] .settings-heading h2{font-size:25px;text-transform:none;font-weight:700;letter-spacing:-.6px}
+:root[data-design=newsprint] .settings-tag{display:none}
+:root[data-design=newsprint] .settings-section{padding:18px;border-bottom:1px solid var(--ink)}
+:root[data-design=newsprint] .section-label{font:600 9px 'Inter',sans-serif;letter-spacing:1.6px;margin-bottom:12px}
+:root[data-design=newsprint] .select-wrap select{border:0;border-bottom:2px solid var(--ink);background:transparent;padding:8px 24px 8px 0;box-shadow:none;font:500 13px 'JetBrains Mono',monospace;min-height:44px}
+:root[data-design=newsprint] .select-wrap svg{right:4px;top:16px}
+:root[data-design=newsprint] .preset-description{font:13px/1.7 'Lora',Georgia,serif;text-align:justify;color:#404040;margin:14px 0 12px}
+:root[data-design=newsprint] .preset-hint{font:9px 'JetBrains Mono',monospace;font-weight:400;gap:8px}
+:root[data-design=newsprint] .preset-hint .green-dot{opacity:1}
+:root[data-design=newsprint] .world-options{gap:10px}
+:root[data-design=newsprint] .world-option{font:500 10px 'Inter',sans-serif}
+:root[data-design=newsprint] .world-thumbnail{height:66px;background:var(--theme-quiet);border:1px solid var(--ink);box-shadow:none;filter:grayscale(1)}
+:root[data-design=newsprint] .world-option.active .world-thumbnail{border:1px solid var(--ink);box-shadow:inset 0 -4px 0 var(--ink);background:var(--paper)}
+:root[data-design=newsprint] .world-thumbnail i{border:1px solid var(--ink);background:var(--ink);box-shadow:none;width:18px;height:18px}
+:root[data-design=newsprint] .world-thumbnail i:nth-child(2){background:#737373;width:14px;height:14px}
+:root[data-design=newsprint] .world-thumbnail i:nth-child(3){background:#A3A3A3;width:14px;height:14px}
+:root[data-design=newsprint] .world-option:hover{transform:none}
+:root[data-design=newsprint] .world-option:hover .world-thumbnail{filter:sepia(.5);box-shadow:3px 3px 0 var(--ink);transform:translate(-1px,-1px)}
+:root[data-design=newsprint] .toggle-row,:root[data-design=newsprint] .setting-row{font:12px 'Lora',Georgia,serif;font-weight:400;min-height:40px}
+:root[data-design=newsprint] .switch-visual{border:1px solid var(--ink);width:30px;height:18px;background:var(--paper);box-shadow:none}
+:root[data-design=newsprint] .switch-visual:after{width:10px;height:10px;left:3px;top:3px;background:var(--ink)}
+:root[data-design=newsprint] .switch:checked+.switch-visual{background:var(--ink);border-color:var(--ink)}
+:root[data-design=newsprint] .switch:checked+.switch-visual:after{left:15px;background:var(--paper)}
+:root[data-design=newsprint] .trail-length-row{font-size:11px}
+:root[data-design=newsprint] .mini-select select{font:10px 'JetBrains Mono',monospace;min-height:36px}
+:root[data-design=newsprint] .mini-select svg{top:13px}
+:root[data-design=newsprint] .physics-section summary{font:600 9px 'Inter',sans-serif;letter-spacing:1px;min-height:44px}
+:root[data-design=newsprint] .control-note{font:12px/1.65 'Lora',Georgia,serif;color:#404040}
+:root[data-design=newsprint] .range-label{font:12px 'Lora',Georgia,serif}
+:root[data-design=newsprint] .range-label output{font-size:10px;font-weight:400}
+:root[data-design=newsprint] .physics-range{height:30px}
+:root[data-design=newsprint] .physics-range::-webkit-slider-runnable-track{height:2px;background:var(--ink)}
+:root[data-design=newsprint] .physics-range::-webkit-slider-thumb{width:10px;height:14px;background:var(--ink);border:0;margin-top:-6px}
+:root[data-design=newsprint] .physics-range::-moz-range-track{height:2px;background:var(--ink)}
+:root[data-design=newsprint] .physics-range::-moz-range-thumb{width:10px;height:14px;background:var(--ink);border:0}
+:root[data-design=newsprint] .setting-row>select{border:0;border-bottom:2px solid var(--ink);background:transparent;font:11px 'JetBrains Mono',monospace;min-height:44px}
+:root[data-design=newsprint] .edit-initial{font:500 10px 'Inter',sans-serif;letter-spacing:.3px;min-height:44px}
+:root[data-design=newsprint] .edit-initial:hover{color:var(--theme-accent)}
+:root[data-design=newsprint] .apply-button{background:var(--ink);color:var(--paper);border:1px solid var(--ink);box-shadow:none;font:500 10px 'Inter',sans-serif;letter-spacing:.8px;min-height:44px}
+:root[data-design=newsprint] .apply-button:hover{background:var(--paper);color:var(--ink)}
+:root[data-design=newsprint] .settings-footer{background:var(--theme-quiet);border-top:1px solid var(--ink);padding:14px 18px;font:8px/1.6 'JetBrains Mono',monospace;letter-spacing:.15px}
+:root[data-design=newsprint] .app-footer{margin:0;padding:16px 0;border-bottom:4px solid var(--ink);font:9px 'JetBrains Mono',monospace}
+:root[data-design=newsprint] .app-footer .mono,:root[data-design=newsprint] .app-footer .text-button{font-size:9px;font-weight:400}
+:root[data-design=newsprint] .app-footer .text-button{min-height:44px}
+:root[data-design=newsprint] .footer-separator{width:1px;height:18px}
+:root[data-design=newsprint] .edition-colophon{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0 28px;font-size:8px;letter-spacing:1px}
+:root[data-design=newsprint] .edition-ornament{font-family:'Playfair Display',serif;font-size:21px;color:#737373}
+:root[data-design=newsprint] .modal{border:1px solid var(--ink);box-shadow:none;background:var(--paper)}
+:root[data-design=newsprint] .modal h2{font-weight:700}
+:root[data-design=newsprint] .modal p{font:14px/1.7 'Lora',Georgia,serif}
+:root[data-design=newsprint] .modal .about-fine{font-size:12px}
+:root[data-design=newsprint] .modal-header .icon-button{height:44px;min-width:44px;border:1px solid var(--ink)}
+:root[data-design=newsprint] .about-facts span{background:var(--paper);border:1px solid var(--ink);font:9px 'JetBrains Mono',monospace}
+:root[data-design=newsprint] .initial-body,:root[data-design=newsprint] kbd{background:var(--paper);border:1px solid var(--ink);box-shadow:none;color:var(--ink)}
+:root[data-design=newsprint] .initial-vector input{border:0;border-bottom:2px solid var(--ink);background:transparent;color:var(--ink);font:11px 'JetBrains Mono',monospace;min-height:44px}
+:root[data-design=newsprint] .toast{background:var(--paper);color:var(--ink);border:1px solid var(--ink);box-shadow:4px 4px 0 var(--ink);font:12px 'Lora',Georgia,serif}
+:root[data-design=newsprint] button:focus-visible,:root[data-design=newsprint] a:focus-visible,:root[data-design=newsprint] select:focus-visible,:root[data-design=newsprint] input:focus-visible,:root[data-design=newsprint] summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+:root[data-design=newsprint] .timeline-panel button:focus-visible,:root[data-design=newsprint] .timeline-panel select:focus-visible,:root[data-design=newsprint] .timeline-panel input:focus-visible{outline-color:var(--paper)}
+:root[data-design=newsprint] .select-wrap select:focus-visible,:root[data-design=newsprint] .initial-vector input:focus-visible{background:#E5E5E0}
+:root[data-design=newsprint] .drift-warning{color:var(--theme-accent)}
+@keyframes newsprint-crawl{to{transform:translateX(-50%)}}
+@media(max-width:1100px){
+  :root[data-design=newsprint] .app-header{grid-template-columns:130px minmax(0,1fr) 170px;gap:12px;height:104px}
+  :root[data-design=newsprint] .brand{font-size:42px;letter-spacing:-1.7px}
+  :root[data-design=newsprint] .workspace{grid-template-columns:minmax(0,1fr) 300px;gap:0}
+  :root[data-design=newsprint] .page-intro{grid-template-columns:minmax(0,1fr) 265px;gap:24px}
+  :root[data-design=newsprint] .newsprint-deck h2{font-size:23px}
+  :root[data-design=newsprint] .newsprint-deck p{font-size:12px}
+  :root[data-design=newsprint] .scene-top{left:12px;right:12px;padding:10px}
+  :root[data-design=newsprint] .scene-heading h2{font-size:20px}
+  :root[data-design=newsprint] .scene-top p{font-size:10px}
+  :root[data-design=newsprint] .scene-bottom{gap:8px}
+  :root[data-design=newsprint] .transport-row{flex-wrap:wrap;gap:10px}
+}
+@media(min-width:761px) and (max-width:900px){
+  :root[data-design=newsprint] .page-intro{grid-template-columns:minmax(0,1fr) 210px;gap:18px}
+  :root[data-design=newsprint] h1{font-size:55px;letter-spacing:-2.5px}
+  :root[data-design=newsprint] h1 em{letter-spacing:-2px}
+  :root[data-design=newsprint] .newsprint-deck{padding-left:18px}
+  :root[data-design=newsprint] .header-center{font-size:8px;letter-spacing:.5px}
+  :root[data-design=newsprint] .app-header{grid-template-columns:100px minmax(0,1fr) 150px}
+  :root[data-design=newsprint] .brand{font-size:34px;letter-spacing:-1.3px}
+  :root[data-design=newsprint] .about-button{font-size:8px;letter-spacing:.4px;padding:8px}
+  :root[data-design=newsprint] .workspace{grid-template-columns:minmax(0,1fr) 275px}
+  :root[data-design=newsprint] .scene-top{align-items:flex-start;gap:8px}
+  :root[data-design=newsprint] .scene-heading{flex-wrap:wrap;gap:6px}
+  :root[data-design=newsprint] .scene-top p{max-width:190px}
+  :root[data-design=newsprint] .scene-actions{flex-direction:column}
+  :root[data-design=newsprint] .timeline-panel{padding:18px 14px}
+  :root[data-design=newsprint] .transport{gap:3px}
+  :root[data-design=newsprint] .transport-divider{margin:0 2px}
+}
+@media(max-width:760px){
+  :root[data-design=newsprint] .app-header{height:84px;padding:0 16px;grid-template-columns:minmax(0,1fr) 44px 44px;gap:8px;border-bottom:4px solid var(--ink)}
+  :root[data-design=newsprint] .brand{grid-column:1;justify-self:start;font-size:clamp(24px,5.8vw,34px);letter-spacing:-1.2px;gap:0}
+  :root[data-design=newsprint] .header-center{display:none}
+  :root[data-design=newsprint] .about-button{grid-column:2;min-width:44px;padding:0;margin:0}
+  :root[data-design=newsprint] .mobile-config{grid-column:3;grid-row:1;margin:0;min-width:44px;height:44px;border:1px solid var(--ink);box-shadow:none;background:var(--paper);color:var(--ink)}
+  :root[data-design=newsprint] .mobile-config:hover{background:var(--ink);color:var(--paper)}
+  :root[data-design=newsprint] .edition-bar{padding:10px 16px;font-size:7px;letter-spacing:.25px;gap:6px}
+  :root[data-design=newsprint] .edition-bar span:last-child{display:none}
+  :root[data-design=newsprint] .main-shell{padding:26px 16px 0}
+  :root[data-design=newsprint] .page-intro{display:block;margin-bottom:24px}
+  :root[data-design=newsprint] .intro-copy{padding-right:0}
+  :root[data-design=newsprint] .page-intro .eyebrow{font-size:8px;letter-spacing:1px}
+  :root[data-design=newsprint] h1{font-size:clamp(40px,10.3vw,72px);letter-spacing:-2px;line-height:1.02;margin:14px 0}
+  :root[data-design=newsprint] h1 em{letter-spacing:-1.8px}
+  :root[data-design=newsprint] .page-intro .intro-copy p{font-size:13px;line-height:1.7;max-width:100%;margin:0}
+  :root[data-design=newsprint] .newsprint-deck{display:none}
+  :root[data-design=newsprint] .ticker-copy{padding-top:8px;padding-bottom:8px;gap:20px;font-size:8px}
+  :root[data-design=newsprint] .edition-section-rule{margin-top:18px;padding:10px 0;font-size:8px}
+  :root[data-design=newsprint] .edition-section-rule span:last-child{display:none}
+  :root[data-design=newsprint] .workspace{display:block;height:auto;border:1px solid var(--ink);border-top:0}
+  :root[data-design=newsprint] .simulation-card{height:680px;border:0;box-shadow:none}
+  :root[data-design=newsprint] .scene-top{top:12px;left:10px;right:10px;gap:5px;align-items:flex-start;padding:10px}
+  :root[data-design=newsprint] .scene-heading{gap:6px;flex-wrap:wrap}
+  :root[data-design=newsprint] .scene-heading h2{font-size:21px}
+  :root[data-design=newsprint] .scene-top p{font-size:10px;line-height:1.5;max-width:200px}
+  :root[data-design=newsprint] .status-chip{font-size:7px;padding:4px 5px}
+  :root[data-design=newsprint] .scene-actions{gap:5px;flex-shrink:0}
+  :root[data-design=newsprint] .scene-actions .icon-button{min-width:44px;height:44px;box-shadow:none}
+  :root[data-design=newsprint] .scene-bottom{left:10px;right:10px;bottom:12px;padding:10px;justify-content:space-between}
+  :root[data-design=newsprint] .figure-caption{font-size:7px}
+  :root[data-design=newsprint] .scene-legend{font-size:8px;gap:10px}
+  :root[data-design=newsprint] .view-controls{left:10px;bottom:64px;box-shadow:none}
+  :root[data-design=newsprint] .view-button{font-size:10px;padding:8px 12px}
+  :root[data-design=newsprint] .timeline-panel{padding:16px 14px;border-top:4px solid var(--ink)}
+  :root[data-design=newsprint] .timeline-track input,:root[data-design=newsprint] .physics-range{height:44px}
+  :root[data-design=newsprint] .timeline-head .mono{font-size:9px}
+  :root[data-design=newsprint] .timeline-reading{gap:8px}
+  :root[data-design=newsprint] .transport{width:100%;justify-content:space-between;gap:3px}
+  :root[data-design=newsprint] .transport .icon-button{min-width:44px}
+  :root[data-design=newsprint] .transport-divider{margin:0 2px}
+  :root[data-design=newsprint] .jump-live{margin-left:auto}
+  :root[data-design=newsprint] .settings-panel{position:fixed;height:100dvh;width:min(370px,94vw);border:0;border-left:1px solid var(--ink);box-shadow:none;transform:translateX(101%)}
+  :root[data-design=newsprint] .settings-panel.drawer-open{transform:translateX(0)}
+  :root[data-design=newsprint] .settings-heading{height:78px;padding:18px}
+  :root[data-design=newsprint] .settings-heading h2{font-size:25px}
+  :root[data-design=newsprint] .drawer-close{border:1px solid var(--ink);height:44px;min-width:44px}
+  :root[data-design=newsprint] .settings-section{padding:20px}
+  :root[data-design=newsprint] .toggle-row{min-height:44px}
+  :root[data-design=newsprint] .mini-select select{min-height:44px}
+  :root[data-design=newsprint] .mini-select svg{top:16px}
+  :root[data-design=newsprint] .drawer-overlay{background:#11111199;backdrop-filter:none}
+  :root[data-design=newsprint] .app-footer{font-size:8px;gap:10px;padding:16px 0;margin:0}
+  :root[data-design=newsprint] .app-footer .mono{font-size:8px}
+  :root[data-design=newsprint] .edition-colophon{font-size:7px;letter-spacing:.5px;gap:8px;padding:16px 0 24px}
+  :root[data-design=newsprint] .edition-colophon>span:last-child{max-width:125px;text-align:right;line-height:1.6}
+  :root[data-design=newsprint] .edition-ornament{font-size:17px;white-space:nowrap}
+}
+@media(max-width:380px){
+  :root[data-design=newsprint] .app-header{padding:0 12px;gap:5px}
+  :root[data-design=newsprint] .brand{font-size:24px;letter-spacing:-1.5px}
+  :root[data-design=newsprint] .main-shell{padding-left:12px;padding-right:12px}
+  :root[data-design=newsprint] h1{font-size:38px;letter-spacing:-2px}
+  :root[data-design=newsprint] h1 em{letter-spacing:-2px}
+  :root[data-design=newsprint] .scene-actions{flex-direction:column}
+  :root[data-design=newsprint] .scene-top p{max-width:190px}
+  :root[data-design=newsprint] .scene-bottom{gap:8px}
+  :root[data-design=newsprint] .transport{gap:2px}
+  :root[data-design=newsprint] .transport-divider{margin:0}
+  :root[data-design=newsprint] .speed-control{min-width:58px}
+}
+@media(prefers-reduced-motion:reduce){:root[data-design=newsprint] .ticker-reel{animation:none}}

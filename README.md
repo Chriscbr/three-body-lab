@@ -18,6 +18,7 @@ The original interface is at `/`. Separate front ends share the same simulator a
 - `/bauhaus/`: geometric composition, primary colors, Outfit typography, and hard shadows.
 - `/neo-brutalism/`: cream paper, highlighter colors, heavy borders, outlined type, and sticker motifs.
 - `/sketch/`: handwritten type, wobbly frames, paper texture, tape, and scribbled accents.
+- `/newsprint/`: a serif newspaper masthead, ruled editorial columns, paper texture, monochrome controls, and a science ticker.
 
 There is no design switcher in the app. The build creates a real index file for each URL so direct links work on static hosting.
 
