@@ -11,6 +11,20 @@ npm run dev
 
 Open the printed local URL. To try it on a phone on the same Wi-Fi, open the printed Network URL. Production assets are self-contained in `dist` after `npm run build` (fonts gracefully fall back to system fonts if offline).
 
+## Design editions
+
+The original interface is at `/`. Separate front ends share the same simulator and controls:
+
+- `/bauhaus/`: geometric composition, primary colors, Outfit typography, and hard shadows.
+- `/neo-brutalism/`: cream paper, highlighter colors, heavy borders, outlined type, and sticker motifs.
+- `/sketch/`: handwritten type, wobbly frames, paper texture, tape, and scribbled accents.
+
+There is no design switcher in the app. The build creates a real index file for each URL so direct links work on static hosting.
+
+## Visual worlds
+
+Cosmic uses HDR stellar surfaces, additive halos, bloom, a procedural nebula cubemap, stars, and distant spiral galaxies. The nebula shader is baked once into the skybox rather than recomputed each frame. Studio uses polished metal spheres above a rough, textured wooden tabletop. Abstract uses matte spheres, a light gray background, and optional coordinate axes and orthogonal grids.
+
 ## Controls
 
 - Drag to rotate; scroll or pinch to zoom; right-drag or two fingers to pan.

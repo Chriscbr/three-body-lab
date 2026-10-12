@@ -1,22 +1,35 @@
 import './style.css';
+import './themes.css';
 import {createIcons, Orbit, ArrowUpRight, ChevronDown, RotateCcw, Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, SlidersHorizontal, X, Info, MousePointer2, Move3d, Crosshair, Camera, Check, ArrowLeft, Github, Keyboard, Plus, Minus} from 'lucide';
 import {GravityScene, BODY_COLORS} from './scene.js';
 import {Simulation, PRESETS, SAMPLE_DT, MAX_TIME, createInitial} from './physics.js';
+import {bindTimeline} from './timeline.js';
+import {DESIGNS, designFromPath, designDecoration} from './design.js';
 
 const iconSet = {Orbit, ArrowUpRight, ChevronDown, RotateCcw, Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, SlidersHorizontal, X, Info, MousePointer2, Move3d, Crosshair, Camera, Check, ArrowLeft, Github, Keyboard, Plus, Minus};
 const icon = name => `<i data-lucide="${name}" aria-hidden="true"></i>`;
 const $ = id => document.getElementById(id);
 const app = $('app');
+const design = designFromPath(window.location.pathname), designCopy = DESIGNS[design];
+document.documentElement.dataset.design = design;
+document.title = designCopy.title;
+if (design !== 'original') {
+  const font = document.createElement('link'); font.rel = 'stylesheet';
+  font.href = design === 'bauhaus' ? 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap' : design === 'sketch' ? 'https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap' : 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap';
+  document.head.append(font);
+}
+const brandMark = design === 'bauhaus' ? '<i class="logo-circle"></i><i class="logo-square"></i><i class="logo-triangle"></i>' : icon('orbit');
+const homePath = design === 'original' ? '/' : `/${design}/`;
 
 app.innerHTML = `
   <header class="app-header">
-    <a class="brand" href="/" aria-label="Three Body Lab home"><span class="brand-mark">${icon('orbit')}</span><span>three body<span class="brand-light"> lab</span><span class="brand-dot">.</span></span></a>
+    <a class="brand" href="${homePath}" aria-label="Three Body Lab home"><span class="brand-mark">${brandMark}</span><span>three body<span class="brand-light"> lab</span><span class="brand-dot">.</span></span></a>
     <div class="header-center"><span class="header-rule"></span>A playground for gravity<span class="header-rule"></span></div>
     <button class="text-button about-button" id="about-button" aria-label="About the experiment"><span class="about-label">About the experiment</span> ${icon('arrow-up-right')}</button>
     <button class="icon-button mobile-config" id="mobile-config" aria-label="Open simulation settings" aria-controls="settings-panel" aria-expanded="false">${icon('sliders-horizontal')}</button>
   </header>
   <main class="main-shell">
-    <section class="page-intro"><div><div class="eyebrow"><span class="tiny-cross">+</span> AN INTERACTIVE EXPLORATION</div><h1>Gravity, in motion<span>.</span></h1><p>Three bodies. Endless possibilities. Find the balance, or embrace the chaos.</p></div><div class="intro-meta"><span class="green-dot"></span> Newtonian physics <span class="meta-divider">/</span> Real-time 3D</div></section>
+    <section class="page-intro"><div class="intro-copy"><div class="eyebrow"><span class="tiny-cross">+</span> ${designCopy.eyebrow}</div><h1>${designCopy.headline}</h1><p>${designCopy.description}</p></div>${designDecoration(design)}<div class="intro-meta"><span class="green-dot"></span> Newtonian physics <span class="meta-divider">/</span> Real-time 3D</div></section>
     <div class="workspace">
       <section class="simulation-card" aria-label="Simulation and playback">
         <div class="viewport" id="viewport">
@@ -85,7 +98,8 @@ function updateUI() {
   const stateText = isScrubbing ? 'SCRUBBING' : !playing ? 'PAUSED' : live ? 'LIVE' : 'REPLAY';
   $('playback-state').innerHTML = `<span class="green-dot ${stateText === 'LIVE' ? '' : 'muted-dot'}"></span>${stateText}`;
   $('time-readout').textContent = `t = ${currentTime.toFixed(3)}`;
-  $('timeline').max = Math.max(simulation.time, SAMPLE_DT); $('timeline').value = currentTime;
+  $('timeline').max = Math.max(simulation.time, SAMPLE_DT);
+  if (!isScrubbing) $('timeline').value = currentTime;
   const progress = currentTime / Math.max(simulation.time, SAMPLE_DT) * 100;
   $('timeline').style.setProperty('--progress', `${progress}%`);
   const span = simulation.time, step = span < 10 ? 1 : span < 25 ? 5 : span < 60 ? 10 : span < 150 ? 25 : 100;
@@ -112,9 +126,9 @@ $('preset').addEventListener('change', e => {
   $('gravity-out').textContent = '1.00'; $('velocity-out').textContent = '1.00×'; $('perturbation-out').textContent = '0.000';
   loadRun(); notify(`${PRESETS[preset].name} loaded`);
 });
-document.querySelectorAll('[data-world]').forEach(button => button.addEventListener('click', () => {
+document.querySelectorAll('.world-option[data-world]').forEach(button => button.addEventListener('click', () => {
   const world = button.dataset.world; scene?.setStyle(world);
-  document.querySelectorAll('[data-world]').forEach(b => {b.classList.toggle('active', b === button); b.setAttribute('aria-pressed', String(b === button));});
+  document.querySelectorAll('.world-option[data-world]').forEach(b => {b.classList.toggle('active', b === button); b.setAttribute('aria-pressed', String(b === button));});
   if (world === 'abstract') {$('grid').checked = true; $('axes').checked = true;} else {$('grid').checked = false; $('axes').checked = false;}
   if (scene) {scene.showGrid = $('grid').checked; scene.showAxes = $('axes').checked; scene.updateHelpers();}
   viewOptions.forceTrails = true;
@@ -128,9 +142,12 @@ $('back').addEventListener('click', () => {setPlaying(false); scrub(currentTime 
 $('forward').addEventListener('click', () => {setPlaying(false); scrub(currentTime + .25);});
 $('jump-live').addEventListener('click', () => {scrub(simulation.time); setPlaying(true);});
 $('speed').addEventListener('change', e => {speed = Number(e.target.value);});
-$('timeline').addEventListener('pointerdown', () => {isScrubbing = true; setPlaying(false);});
-$('timeline').addEventListener('input', e => {setPlaying(false); scrub(Number(e.target.value));});
-window.addEventListener('pointerup', () => {if (isScrubbing) {isScrubbing = false; updateUI();}});
+bindTimeline($('timeline'), {
+  pause: () => setPlaying(false),
+  seek: scrub,
+  scrubbing: active => {isScrubbing = active; updateUI();},
+  releaseTarget: window,
+});
 $('reset-camera').addEventListener('click', () => {scene?.resetCamera(); document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === 'perspective'));});
 $('fit-camera').addEventListener('click', () => scene?.fit(simulation.at(currentTime).positions));
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {scene?.resetCamera(button.dataset.view === 'top'); document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b === button));}));
