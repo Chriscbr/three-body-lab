@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Simulation, createInitial, energy, centerState, SAMPLE_DT} from '../src/physics.js';
+import {Simulation, PRESETS, createInitial, energy, SAMPLE_DT} from '../src/physics.js';
 
 test('the figure-eight returns near its initial state after a full period', () => {
   const initial = createInitial('figure8'); const sim = new Simulation(initial);
@@ -10,6 +10,20 @@ test('the figure-eight returns near its initial state after a full period', () =
   assert.ok(error < .003, `position error ${error}`);
   assert.ok(sim.drift(sim.time) < .005, `energy drift ${sim.drift(sim.time)}%`);
 });
+for (const key of ['butterfly1', 'butterfly2', 'bumblebee', 'dragonfly', 'goggles', 'moth1', 'moth2']) {
+  test(`${PRESETS[key].name} reproduces its published period`, () => {
+    const preset = PRESETS[key], initial = createInitial(key);
+    const sim = new Simulation(initial, {softening: preset.softening});
+    sim.advanceTo(preset.period);
+    const state = sim.at(preset.period);
+    for (const field of ['positions', 'velocities']) {
+      const error = Math.max(...state[field].flatMap((p, i) => p.map((x, k) => Math.abs(x - initial[field][i][k]))));
+      assert.ok(error < .003, `${field} return error ${error}`);
+    }
+    assert.ok(sim.drift(sim.time) < .001, `energy drift ${sim.drift(sim.time)}%`);
+    assert.ok(state.positions.every(p => p[1] === 0), 'published orbits remain planar');
+  });
+}
 test('long-running periodic motion remains bounded and conserves momentum', () => {
   const sim = new Simulation(createInitial('figure8')); sim.advanceTo(63.25);
   assert.ok(sim.drift(sim.time) < .01);

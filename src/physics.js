@@ -16,16 +16,34 @@ function hierarchical() {
   return {positions, velocities, masses};
 }
 
+// Šuvakov & Dmitrašinović, PRL 110, 114301 (2013), Table I.
+// Six-digit velocities where available: Hudomal's initial-condition catalogue
+// and MSc thesis, Table 23 (https://www.scl.rs/theses/msc_ahudomal.pdf).
+// The papers' xy plane is mapped to xz for the scene's y-up coordinates.
+function planarOrbit(name, vx, vz, period) {
+  return {name, category: 'Periodic', period, softening: 0, scale: 1.85, warmup: Math.min(period / 2, 8), initial: () => ({
+    positions: [[-1, 0, 0], [1, 0, 0], [0, 0, 0]],
+    velocities: [[vx, 0, vz], [vx, 0, vz], [-2 * vx, 0, -2 * vz]], masses: [1, 1, 1],
+  })};
+}
+
 export const PRESETS = {
-  figure8: {name: 'Figure-eight', category: 'Stable', subtitle: 'Three bodies. One beautiful choreography.', description: 'Three equal masses chase the same figure-eight, one third of a period apart. A rare island of order in the three-body problem.', initial: () => structuredClone(figureEight), scale: 1.65, warmup: 3.2},
-  hierarchy: {name: 'Hierarchical orbit', category: 'Bounded', subtitle: 'A close pair, with a distant companion.', description: 'A tight binary and a lighter, tilted outer companion. The large separation helps this configuration remain bounded.', initial: hierarchical, scale: 6.5, warmup: 6},
-  chaotic: {name: 'Chaotic encounter', category: 'Chaotic', subtitle: 'A small change. An entirely different future.', description: 'Unequal masses approach in three dimensions. Close encounters trade energy and send each body down an unpredictable path.', initial: () => ({positions: [[-1.1, 0.25, 0.2], [1.05, -0.15, 0.3], [0.15, 0.65, -1.1]], velocities: [[0.17, 0.11, 0.35], [-0.25, 0.04, -0.22], [0.14, -0.18, 0.08]], masses: [1, 1.15, 0.85]}), scale: 2.4, warmup: 1.4},
-  triangle: {name: 'Lagrange triangle', category: 'Periodic · unstable', subtitle: 'Perfect symmetry, delicately balanced.', description: 'An equilateral triangle rotates as a unit. With three equal masses this exact periodic solution is unstable to perturbations.', initial: () => {
+  figure8: {name: 'Figure-eight', category: 'Stable', initial: () => structuredClone(figureEight), scale: 1.65, warmup: 3.2},
+  butterfly1: planarOrbit('Butterfly I', .306893, .125507, 6.2356),
+  butterfly2: planarOrbit('Butterfly II', .392955, .097579, 7.0039),
+  bumblebee: planarOrbit('Bumblebee', .184279, .587188, 63.5345),
+  dragonfly: planarOrbit('Dragonfly', .080584, .588836, 21.2710),
+  goggles: planarOrbit('Goggles', .08330, .12789, 10.4668),
+  moth1: planarOrbit('Moth I', .464445, .396060, 14.8939),
+  moth2: planarOrbit('Moth II', .439166, .452968, 28.6703),
+  hierarchy: {name: 'Hierarchical orbit', category: 'Bounded', initial: hierarchical, scale: 6.5, warmup: 6},
+  chaotic: {name: 'Chaotic encounter', category: 'Chaotic', initial: () => ({positions: [[-1.1, 0.25, 0.2], [1.05, -0.15, 0.3], [0.15, 0.65, -1.1]], velocities: [[0.17, 0.11, 0.35], [-0.25, 0.04, -0.22], [0.14, -0.18, 0.08]], masses: [1, 1.15, 0.85]}), scale: 2.4, warmup: 1.4},
+  triangle: {name: 'Lagrange triangle', category: 'Periodic · unstable', initial: () => {
     const positions = Array.from({length: 3}, (_, i) => [Math.cos(i * Math.PI * 2 / 3), 0, Math.sin(i * Math.PI * 2 / 3)]);
     const omega = Math.sqrt(1 / Math.sqrt(3));
     return {positions, velocities: positions.map(p => [-p[2] * omega, 0, p[0] * omega]), masses: [1, 1, 1]};
   }, scale: 1.8, warmup: 3},
-  collapse: {name: 'Pythagorean collapse', category: 'Chaotic', subtitle: 'At rest, until gravity takes over.', description: 'Masses of 3, 4, and 5 begin at the corners of a 3–4–5 triangle. Their collapse leads to dramatic exchanges and possible ejection.', initial: () => ({positions: [[1, 0, 3], [-2, 0, -1], [1, 0, -1]], velocities: [[0, 0, 0], [0, 0, 0], [0, 0, 0]], masses: [3, 4, 5]}), scale: 4.5, warmup: 1},
+  collapse: {name: 'Pythagorean collapse', category: 'Chaotic', initial: () => ({positions: [[1, 0, 3], [-2, 0, -1], [1, 0, -1]], velocities: [[0, 0, 0], [0, 0, 0], [0, 0, 0]], masses: [3, 4, 5]}), scale: 4.5, warmup: 1},
 };
 
 export function centerState(state) {
@@ -96,9 +114,9 @@ export class Simulation {
           v2 += (this.state.velocities[i][k] - this.state.velocities[j][k]) ** 2;
         }
         const r = Math.sqrt(r2);
-        h = Math.min(h, 0.012 * Math.sqrt(r * r * r / (this.gravity * (this.state.masses[i] + this.state.masses[j]))), 0.02 * r / (Math.sqrt(v2) + 1e-9));
+        h = Math.min(h, 0.002 * Math.sqrt(r * r * r / (this.gravity * (this.state.masses[i] + this.state.masses[j]))), 0.004 * r / (Math.sqrt(v2) + 1e-9));
       }
-      // UI softening is bounded so this remains finite even at a coincident start.
+      // Keep the timestep positive at the numerical precision floor.
       h = Math.min(remaining, Math.max(h, 1e-7));
       const {positions: p, velocities: v} = this.state;
       for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) {v[i][k] += this.accel[i][k] * h / 2; p[i][k] += v[i][k] * h;}

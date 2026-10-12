@@ -8,7 +8,7 @@ import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
-import {SAMPLE_DT} from './physics.js';
+import {sampleTrail} from './trails.js';
 
 export const BODY_COLORS = ['#edb978', '#80d7c3', '#aca3ed'];
 const GLOW_STRENGTH = 0.5;
@@ -118,8 +118,14 @@ export class GravityScene {
       return {body, halo, aura, solarMaterial, metalMaterial, matteMaterial};
     });
     this.trails = BODY_COLORS.map(color => {
-      const geometry = new LineGeometry(); geometry.setPositions([0, 0, 0, 0, 0, 0]); geometry.setColors([1, 1, 1, 1, 1, 1]);
-      const material = new LineMaterial({color: 0xffffff, vertexColors: true, linewidth: 1.8, transparent: true, opacity: .85, depthWrite: false});
+      const geometry = new LineGeometry(); geometry.setPositions([0, 0, 0, 0, 0, 0]);
+      const material = new LineMaterial({color, linewidth: 1.8, transparent: true, opacity: .85, depthWrite: false});
+      material.vertexShader = material.vertexShader
+        .replace('uniform float linewidth;', 'uniform float linewidth;\nattribute float instanceOpacityStart;\nattribute float instanceOpacityEnd;\nvarying float vTrailOpacity;')
+        .replace('void main() {', 'void main() {\nvTrailOpacity = position.y < 0.5 ? instanceOpacityStart : instanceOpacityEnd;');
+      material.fragmentShader = material.fragmentShader
+        .replace('uniform float opacity;', 'uniform float opacity;\nvarying float vTrailOpacity;')
+        .replace('float alpha = opacity;', 'float alpha = opacity * vTrailOpacity;');
       const line = new Line2(geometry, material); line.frustumCulled = false; this.scene.add(line);
       return {line, color: new THREE.Color(color)};
     });
@@ -269,21 +275,19 @@ export class GravityScene {
     if (this.style === 'cosmic') this.composer.render(); else this.renderer.render(this.scene, this.camera);
   }
   updateTrails(simulation, time, options) {
-    const end = Math.min(Math.floor(time / SAMPLE_DT), simulation.history.length - 1);
-    const start = options.trailLength === 'full' ? 0 : Math.max(0, end - Math.round(Number(options.trailLength) / SAMPLE_DT));
-    const stride = Math.max(1, Math.ceil((end - start) / 1600));
     this.trails.forEach((trail, i) => {
-      trail.line.visible = options.trails && end > start;
+      trail.line.visible = options.trails && time > 0;
       if (!trail.line.visible) return;
-      const positions = [], colors = [], bg = new THREE.Color(this.style === 'abstract' ? '#b6bbc0' : '#0b0f13');
+      const {positions, opacityPairs} = sampleTrail(simulation, time, options.trailLength, i);
       const trailColor = this.style === 'abstract' ? trail.color.clone().multiplyScalar(.4) : trail.color;
-      for (let index = start; index <= end; index += stride) {
-        positions.push(...simulation.history[index].positions[i]);
-        const alpha = .08 + .92 * ((index - start) / Math.max(1, end - start)) ** .7;
-        const c = bg.clone().lerp(trailColor, alpha); colors.push(c.r, c.g, c.b);
+      trail.line.material.color.copy(trailColor);
+      if (positions.length >= 6) {
+        const geometry = trail.line.geometry;
+        geometry.setPositions(positions);
+        const opacityBuffer = new THREE.InstancedInterleavedBuffer(opacityPairs, 2, 1);
+        geometry.setAttribute('instanceOpacityStart', new THREE.InterleavedBufferAttribute(opacityBuffer, 1, 0));
+        geometry.setAttribute('instanceOpacityEnd', new THREE.InterleavedBufferAttribute(opacityBuffer, 1, 1));
       }
-      positions.push(...simulation.at(time).positions[i]); colors.push(trailColor.r, trailColor.g, trailColor.b);
-      if (positions.length >= 6) {trail.line.geometry.setPositions(positions); trail.line.geometry.setColors(colors);}
     });
   }
   project(position) {const v = new THREE.Vector3(...position).project(this.camera); const {width, height} = this.container.getBoundingClientRect(); return {x: (v.x * .5 + .5) * width, y: (-v.y * .5 + .5) * height, visible: v.z < 1 && v.z > -1 && Math.abs(v.x) < .97 && Math.abs(v.y) < .9};}
