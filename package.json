@@ -5,15 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/build-design-routes.mjs",
+    "build": "npm run typecheck && vite build && node scripts/build-design-routes.ts",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "lucide": "0.468.0",
     "three": "0.180.0"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/three": "^0.180.0",
+    "typescript": "^7.0.2",
     "vite": "^7.3.7"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }

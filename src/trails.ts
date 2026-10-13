@@ -1,13 +1,15 @@
-import {SAMPLE_DT} from './physics.js';
+import {SAMPLE_DT} from './physics.ts';
+import type {TrailHistory, TrailLength, TrailSamples} from './types.ts';
 
 export const TRAIL_DURATIONS = {short: 5, medium: 12.5, long: 50};
+export const MAX_TRAIL_SEGMENTS = 2000;
 
 // Fade by simulation age, not by the length of the currently recorded history.
-export function trailOpacity(sampleTime, currentTime, duration) {
+export function trailOpacity(sampleTime: number, currentTime: number, duration: number): number {
   return Math.max(0, Math.min(1, 1 - (currentTime - sampleTime) / duration));
 }
 
-export function sampleTrail(simulation, time, length, body, maxSegments = 2000) {
+export function sampleTrail(simulation: TrailHistory, time: number, length: TrailLength, body: number, maxSegments = MAX_TRAIL_SEGMENTS): TrailSamples {
   const currentTime = Math.max(0, Math.min(time, simulation.time));
   const duration = length === 'full' ? Math.max(currentTime, SAMPLE_DT) : Number(length);
   const startTime = Math.max(0, currentTime - duration);

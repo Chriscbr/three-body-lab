@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {bindTimeline} from '../src/timeline.js';
-import {Simulation, createInitial} from '../src/physics.js';
+import {bindTimeline} from '../src/timeline.ts';
+import {Simulation, createInitial} from '../src/physics.ts';
 
 function fixture() {
-  const input = new EventTarget(), releaseTarget = new EventTarget();
+  const input = Object.assign(new EventTarget(), {value: ''}), releaseTarget = new EventTarget();
   const sim = new Simulation(createInitial('figure8')); sim.advanceTo(4);
   let currentTime = sim.time, playing = true, isScrubbing = false;
   input.value = String(currentTime);

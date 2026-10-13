@@ -6,7 +6,9 @@ export const DESIGNS = {
   newsprint: {name: 'Newsprint', title: 'Three Body Lab — Newsprint edition'},
 };
 
-export function designFromPath(pathname) {
+export type DesignKey = keyof typeof DESIGNS;
+
+export function designFromPath(pathname: string): DesignKey {
   const route = pathname.split('/').filter(Boolean)[0];
-  return Object.hasOwn(DESIGNS, route) ? route : 'original';
+  return route && Object.hasOwn(DESIGNS, route) ? route as DesignKey : 'original';
 }

@@ -1,5 +1,13 @@
 // Read the user's selection before pausing: pause callbacks can refresh the UI.
-export function bindTimeline(input, {pause, seek, scrubbing, releaseTarget}) {
+export interface TimelineInput extends EventTarget {value: string;}
+export interface TimelineCallbacks {
+  pause: () => void;
+  seek: (time: number) => void;
+  scrubbing: (active: boolean) => void;
+  releaseTarget: EventTarget;
+}
+
+export function bindTimeline(input: TimelineInput, {pause, seek, scrubbing, releaseTarget}: TimelineCallbacks): () => void {
   let dragging = false;
   const start = () => {dragging = true; scrubbing(true); pause();};
   const select = () => {

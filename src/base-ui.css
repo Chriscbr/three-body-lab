@@ -1,0 +1,47 @@
+/* Minimum readable text size for the original interface, including mobile. */
+:root[data-design=original] :is(
+  .text-button, .about-button, .eyebrow, .intro-meta, .status-chip,
+  .scene-top p, .body-label, .scene-legend, .orbit-hint, .view-button,
+  .small-label, .timeline-reading, .timeline-reading .mono, .live-text,
+  .mono, .time-unit, .timeline-ticks, .speed-control select, .jump-live,
+  .settings-tag, .section-label, .preset-description, .preset-hint,
+  .world-option, .toggle-row, .setting-row, .trail-length-row,
+  .mini-select select, .setting-row > select, .physics-section summary,
+  .control-note, .range-label, .range-label output,
+  .physics-controls .setting-row, .edit-initial, .apply-button,
+  .settings-footer, .app-footer, .app-footer .mono, .app-footer .text-button,
+  .about-facts span, .modal .about-fine, .source-link, .shortcut-row, kbd,
+  .initial-body legend, .initial-vector, .initial-vector input, .toast
+) {
+  font-size: 12px;
+}
+
+:root[data-design=original] .world-option.active .world-thumbnail::after {
+  font-size: 12px;
+}
+
+:root[data-design=original] .form-error {
+  font-size: 12px !important;
+}
+
+:root[data-design=original] .scene-top > div:first-child { min-width: 0; }
+:root[data-design=original] .scene-heading { flex-wrap: wrap; }
+:root[data-design=original] .scene-actions { flex-shrink: 0; }
+:root[data-design=original] .timeline-head { flex-wrap: wrap; row-gap: 8px; }
+:root[data-design=original] .timeline-track { padding-bottom: 26px; }
+:root[data-design=original] .timeline-ticks { height: 16px; bottom: 0; }
+:root[data-design=original] .jump-live { white-space: nowrap; }
+:root[data-design=original] .section-label { letter-spacing: .9px; }
+:root[data-design=original] .physics-section summary { letter-spacing: .4px; }
+:root[data-design=original] .physics-section summary svg { flex-shrink: 0; }
+:root[data-design=original] .physics-controls .setting-row { flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  :root[data-design=original] .transport-row { flex-wrap: wrap; gap: 8px; }
+  :root[data-design=original] .transport { flex: 1; }
+  :root[data-design=original] .jump-live { margin-left: auto; }
+  :root[data-design=original] .initial-vector { grid-template-columns: 1fr; gap: 8px; }
+  :root[data-design=original] .initial-vector > span { margin-top: 8px; }
+  :root[data-design=original] .initial-vector > label { gap: 8px; }
+  :root[data-design=original] .initial-vector input { padding: 8px; }
+}

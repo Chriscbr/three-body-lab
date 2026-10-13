@@ -4,6 +4,8 @@ A responsive Three.js gravity simulation with twelve initial configurations, thr
 
 ## Run locally
 
+Use Node.js 22.18 or newer. Application code, build scripts, and tests are TypeScript. Node runs the tests and route build script directly; Vite compiles the browser app.
+
 ```sh
 npm install
 npm run dev
@@ -29,10 +31,12 @@ Cosmic uses HDR stellar surfaces, additive halos, bloom, a procedural nebula cub
 ## Controls
 
 - Drag to rotate; scroll or pinch to zoom; right-drag or two fingers to pan.
+- Camera auto-rotation is enabled by default and can be disabled in Display settings.
 - Space: play/pause. R: restart. Left/right arrows: scrub by 0.25 simulation units.
 - Scrubbing pauses playback. Play replays saved history before extending the run. Jump to live resumes from the latest computed frame.
 - Physics edits and initial-condition edits start a new run; display edits retain the timeline.
 - Short, medium, and long trails retain 5, 12.5, and 50 simulation units respectively. Each point fades linearly with its age using per-vertex transparency. Full history retains the entire displayed past, with a fade over that span. Scrubbing never displays future paths.
+- Trails use reusable GPU buffers with capacity for 2,000 segments per body. The active segment count can grow or shrink without being truncated by Three.js's cached capacity. Endpoints update on every rendered simulation frame; paused frames retain their existing buffers.
 
 ## Physics
 
@@ -43,6 +47,9 @@ The figure-eight uses [Richard Montgomery's published initial conditions](https:
 Butterfly I/II, Bumblebee, Dragonfly, Goggles, and Moth I/II use [Šuvakov & Dmitrašinović's initial conditions](https://arxiv.org/abs/1303.0181), with six-digit velocities from [Ana Hudomal's thesis, Table 23](https://www.scl.rs/theses/msc_ahudomal.pdf) where available. They start with equal masses, Newtonian gravity, and zero softening. These are planar periodic orbits; periodicity does not guarantee stability. The papers' xy plane is mapped to the scene's xz plane. Tests check return proximity after a published period and energy conservation. Rounded initial conditions and numerical integration can eventually break periodicity.
 
 ```sh
+npm run typecheck
 npm test
 npm run build
 ```
+
+Strict type checking covers the app, tests, and build script, and runs automatically before production builds. Shared types in `src/types.ts` describe 3D vectors, simulation state, configuration, trail history, and rendering options. The original interface uses a minimum text size of 12px on desktop and mobile.

@@ -1,15 +1,16 @@
 import test from 'node:test';
+import type {TrailHistory, TrailSamples} from '../src/types.ts';
 import assert from 'node:assert/strict';
-import {SAMPLE_DT} from '../src/physics.js';
-import {TRAIL_DURATIONS, sampleTrail, trailOpacity} from '../src/trails.js';
+import {SAMPLE_DT} from '../src/physics.ts';
+import {TRAIL_DURATIONS, sampleTrail, trailOpacity} from '../src/trails.ts';
 
 // A straight trajectory makes retained times directly observable as x positions.
-function straightHistory(time) {
-  const history = Array.from({length: Math.round(time / SAMPLE_DT) + 1}, (_, i) => ({positions: [[i * SAMPLE_DT, 0, 0]]}));
+function straightHistory(time: number): TrailHistory {
+  const history: TrailHistory['history'] = Array.from({length: Math.round(time / SAMPLE_DT) + 1}, (_, i) => ({positions: [[i * SAMPLE_DT, 0, 0]]}));
   return {time, history, at: t => ({positions: [[t, 0, 0]]})};
 }
-const xs = trail => trail.positions.filter((_, i) => i % 3 === 0);
-const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} differs from ${b}`);
+const xs = (trail: TrailSamples) => trail.positions.filter((_, i) => i % 3 === 0);
+const near = (a: number | undefined, b: number) => assert.ok(Math.abs((a ?? NaN) - b) < 1e-6, `${a} differs from ${b}`);
 
 test('trails retain five times the previous durations and fade linearly by age', () => {
   assert.deepEqual(TRAIL_DURATIONS, {short: 5, medium: 12.5, long: 50});

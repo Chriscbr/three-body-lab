@@ -2,13 +2,33 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {Line2} from 'three/addons/lines/Line2.js';
-import {LineGeometry} from 'three/addons/lines/LineGeometry.js';
 import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
-import {sampleTrail} from './trails.js';
+import {sampleTrail} from './trails.ts';
+import {createTrailGeometry, updateTrailGeometry} from './trail-geometry.ts';
+import type {TrailGeometry} from './trail-geometry.ts';
+import type {Simulation} from './physics.ts';
+import type {BodyState, Vector3Tuple, ViewOptions, VisualWorld} from './types.ts';
+
+type BodyMesh = THREE.Mesh<THREE.SphereGeometry, THREE.MeshStandardMaterial | THREE.ShaderMaterial>;
+interface RenderedBody {
+  body: BodyMesh;
+  halo: THREE.Sprite;
+  aura: THREE.Sprite;
+  solarMaterial: THREE.ShaderMaterial;
+  metalMaterial: THREE.MeshStandardMaterial;
+  matteMaterial: THREE.MeshStandardMaterial;
+}
+interface RenderedTrail {line: Line2 & {geometry: TrailGeometry}; color: THREE.Color;}
+
+function canvasContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('A 2D canvas context is required to generate scene textures.');
+  return context;
+}
 
 export const BODY_COLORS = ['#edb978', '#80d7c3', '#aca3ed'];
 const GLOW_STRENGTH = 0.5;
@@ -20,7 +40,7 @@ float fbm(vec3 p) { float n=0.; n+=noise(p)*0.5; n+=noise(p*2.03)*0.25; n+=noise
 
 function glowTexture() {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvasContext(canvas);
   const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
   gradient.addColorStop(0, 'rgba(255,255,255,1)'); gradient.addColorStop(0.12, 'rgba(255,255,255,.95)');
   gradient.addColorStop(0.25, 'rgba(255,255,255,.5)'); gradient.addColorStop(0.4, 'rgba(255,255,255,.2)');
@@ -31,7 +51,7 @@ function glowTexture() {
 
 function woodTexture() {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1024;
-  const ctx = canvas.getContext('2d'), pixels = ctx.createImageData(1024, 1024);
+  const ctx = canvasContext(canvas), pixels = ctx.createImageData(1024, 1024);
   let seed = 4637;
   for (let y = 0; y < 1024; y++) for (let x = 0; x < 1024; x++) {
     seed = (seed * 1664525 + 1013904223) >>> 0;
@@ -51,7 +71,7 @@ function woodTexture() {
 
 function galaxyTexture() {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 256;
-  const ctx = canvas.getContext('2d'); ctx.translate(128, 128); ctx.rotate(-.4); ctx.scale(1, .47);
+  const ctx = canvasContext(canvas); ctx.translate(128, 128); ctx.rotate(-.4); ctx.scale(1, .47);
   const haze = ctx.createRadialGradient(0, 0, 0, 0, 0, 112);
   haze.addColorStop(0, 'rgba(255,242,205,.95)'); haze.addColorStop(.08, 'rgba(255,230,200,.7)');
   haze.addColorStop(.22, 'rgba(198,194,239,.22)'); haze.addColorStop(.65, 'rgba(123,160,215,.045)'); haze.addColorStop(1, 'rgba(100,130,180,0)');
@@ -65,15 +85,43 @@ function galaxyTexture() {
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; return texture;
 }
 
-function axisLabel(text, color) {
+function axisLabel(text: string, color: string) {
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 64;
-  const ctx = canvas.getContext('2d'); ctx.fillStyle = color; ctx.font = '500 36px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 32, 32);
+  const ctx = canvasContext(canvas); ctx.fillStyle = color; ctx.font = '500 36px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 32, 32);
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false}));
   return sprite;
 }
 
 export class GravityScene {
-  constructor(container) {
+  container: HTMLElement;
+  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  composer: EffectComposer;
+  bloom: UnrealBloomPass;
+  controls: OrbitControls;
+  environment: THREE.Texture;
+  geometry: THREE.SphereGeometry;
+  bodies: RenderedBody[];
+  trails: RenderedTrail[];
+  cosmos: THREE.Group;
+  studio: THREE.Group;
+  abstract: THREE.Group;
+  floor: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>;
+  plinth: THREE.Mesh<THREE.CylinderGeometry, THREE.MeshStandardMaterial[]>;
+  gridGroup: THREE.Group;
+  axisGroup: THREE.Group;
+  scale: number;
+  style: VisualWorld;
+  showGrid: boolean;
+  showAxes: boolean;
+  resizeObserver: ResizeObserver;
+  skyboxTarget!: THREE.WebGLCubeRenderTarget;
+  nebulaBackground!: THREE.CubeTexture;
+  trailTime?: number;
+  trailSimulation?: Simulation;
+
+  constructor(container: HTMLElement) {
     this.container = container;
     this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: false, powerPreference: 'high-performance'});
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
@@ -101,7 +149,7 @@ export class GravityScene {
     this.geometry = new THREE.SphereGeometry(1, 48, 32);
     const glowMap = glowTexture();
     this.bodies = BODY_COLORS.map((color, i) => {
-      const body = new THREE.Mesh(this.geometry, new THREE.MeshStandardMaterial({color})); this.scene.add(body);
+      const body: BodyMesh = new THREE.Mesh(this.geometry, new THREE.MeshStandardMaterial({color})); this.scene.add(body);
       const halo = new THREE.Sprite(new THREE.SpriteMaterial({map: glowMap, color: new THREE.Color(color).multiplyScalar(2.2), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: .85 * GLOW_STRENGTH})); body.add(halo);
       const aura = new THREE.Sprite(new THREE.SpriteMaterial({map: glowMap, color, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: .32 * GLOW_STRENGTH})); body.add(aura);
       const solarMaterial = new THREE.ShaderMaterial({
@@ -118,7 +166,7 @@ export class GravityScene {
       return {body, halo, aura, solarMaterial, metalMaterial, matteMaterial};
     });
     this.trails = BODY_COLORS.map(color => {
-      const geometry = new LineGeometry(); geometry.setPositions([0, 0, 0, 0, 0, 0]);
+      const geometry = createTrailGeometry();
       const material = new LineMaterial({color, linewidth: 1.8, transparent: true, opacity: .85, depthWrite: false});
       material.vertexShader = material.vertexShader
         .replace('uniform float linewidth;', 'uniform float linewidth;\nattribute float instanceOpacityStart;\nattribute float instanceOpacityEnd;\nvarying float vTrailOpacity;')
@@ -126,7 +174,7 @@ export class GravityScene {
       material.fragmentShader = material.fragmentShader
         .replace('uniform float opacity;', 'uniform float opacity;\nvarying float vTrailOpacity;')
         .replace('float alpha = opacity;', 'float alpha = opacity * vTrailOpacity;');
-      const line = new Line2(geometry, material); line.frustumCulled = false; this.scene.add(line);
+      const line = new Line2(geometry, material) as RenderedTrail['line']; line.frustumCulled = false; this.scene.add(line);
       return {line, color: new THREE.Color(color)};
     });
     this.cosmos = this.makeCosmos(); this.scene.add(this.cosmos);
@@ -202,10 +250,20 @@ export class GravityScene {
     }
     return group;
   }
-  setScale(scale) {
+  setScale(scale: number) {
     this.scale = scale;
     for (const group of [this.gridGroup, this.axisGroup]) {
-      while (group.children.length) {const c = group.children[0]; group.remove(c); c.geometry?.dispose(); if (c.material?.map) c.material.map.dispose(); c.material?.dispose();}
+      while (group.children.length) {
+        const child = group.children[0]; group.remove(child);
+        if (child instanceof THREE.Line || child instanceof THREE.Sprite) {
+          child.geometry.dispose();
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          for (const material of materials) {
+            if (material instanceof THREE.SpriteMaterial) material.map?.dispose();
+            material.dispose();
+          }
+        }
+      }
     }
     const grid = new THREE.GridHelper(scale * 4, 24, 0x50585c, 0x333c40); grid.material.transparent = true; grid.material.opacity = .34; grid.position.y = -scale * .42; this.gridGroup.add(grid);
     // Three orthogonal planes make the coordinate volume legible from every angle.
@@ -213,9 +271,9 @@ export class GravityScene {
       const grid3D = new THREE.GridHelper(scale * 3, 12, 0x70787c, 0x586065); grid3D.rotation[i === 0 ? 'x' : 'z'] = Math.PI / 2;
       grid3D.material.transparent = true; grid3D.material.opacity = .085; this.gridGroup.add(grid3D);
     }
-    for (const [i, label, color] of [[0, 'X', '#bc8984'], [1, 'Y', '#88b4a1'], [2, 'Z', '#8c9fbf']]) {
-      const end = [0, 0, 0]; end[i] = scale * 1.5;
-      const start = [0, 0, 0]; start[i] = -scale * 1.5;
+    for (const [i, label, color] of [[0, 'X', '#bc8984'], [1, 'Y', '#88b4a1'], [2, 'Z', '#8c9fbf']] as const) {
+      const end: Vector3Tuple = [0, 0, 0]; end[i] = scale * 1.5;
+      const start: Vector3Tuple = [0, 0, 0]; start[i] = -scale * 1.5;
       const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...start), new THREE.Vector3(...end)]);
       this.axisGroup.add(new THREE.Line(geometry, new THREE.LineBasicMaterial({color, transparent: true, opacity: .65})));
       const sprite = axisLabel(label, color); sprite.position.set(...end); sprite.scale.setScalar(scale * .13); this.axisGroup.add(sprite);
@@ -224,7 +282,7 @@ export class GravityScene {
     this.plinth.scale.set(scale * 1.18, scale, scale * 1.18); this.plinth.position.y = -scale * .49;
     this.setStyle(this.style);
   }
-  setStyle(style) {
+  setStyle(style: VisualWorld) {
     this.style = style;
     this.container.dataset.world = style;
     this.cosmos.visible = style === 'cosmic'; this.studio.visible = style === 'studio';
@@ -232,8 +290,8 @@ export class GravityScene {
     this.scene.environment = style === 'studio' ? this.environment : null;
     this.scene.fog = style === 'studio' ? new THREE.FogExp2(0x171c20, .08 / this.scale) : null;
     for (const b of this.bodies) {b.body.material = style === 'cosmic' ? b.solarMaterial : style === 'studio' ? b.metalMaterial : b.matteMaterial; b.halo.visible = b.aura.visible = style === 'cosmic';}
-    this.gridGroup.children.forEach((grid,i) => {grid.material.color.set(style === 'abstract' ? 0x45545e : 0xffffff); grid.material.opacity = style === 'abstract' ? (i === 0 ? .32 : .12) : (i === 0 ? .34 : .085);});
-    this.axisGroup.children.forEach(axis => {if (axis.isSprite) axis.material.color.set(style === 'abstract' ? 0x505050 : 0xffffff);});
+    this.gridGroup.children.forEach((grid,i) => {if (grid instanceof THREE.GridHelper) {grid.material.color.set(style === 'abstract' ? 0x45545e : 0xffffff); grid.material.opacity = style === 'abstract' ? (i === 0 ? .32 : .12) : (i === 0 ? .34 : .085);}});
+    this.axisGroup.children.forEach(axis => {if (axis instanceof THREE.Sprite) axis.material.color.set(style === 'abstract' ? 0x505050 : 0xffffff);});
     this.updateHelpers();
   }
   updateHelpers() {this.gridGroup.visible = this.showGrid; this.axisGroup.visible = this.showAxes;}
@@ -244,7 +302,7 @@ export class GravityScene {
     this.camera.position.multiplyScalar(Math.max(1, .95 / this.camera.aspect));
     this.camera.up.set(0, 1, 0); this.controls.update();
   }
-  fit(positions) {
+  fit(positions: Vector3Tuple[]) {
     const center = positions.reduce((a, p) => a.add(new THREE.Vector3(...p)), new THREE.Vector3()).divideScalar(3);
     const radius = Math.max(this.scale * .6, ...positions.map(p => new THREE.Vector3(...p).distanceTo(center)));
     const direction = this.camera.position.clone().sub(this.controls.target).normalize();
@@ -259,13 +317,16 @@ export class GravityScene {
     this.camera.updateProjectionMatrix(); this.renderer.setSize(width, height); this.composer.setSize(width, height);
     for (const t of this.trails) t.line.material.resolution.set(width, height);
   }
-  update(state, simulation, time, options, frame) {
+  update(state: BodyState, simulation: Simulation, time: number, options: ViewOptions) {
     this.bodies.forEach((b, i) => {
       b.body.position.set(...state.positions[i]);
       const radius = this.scale * .052 * Math.cbrt(state.masses[i] / Math.max(...state.masses)); b.body.scale.setScalar(radius);
       b.halo.scale.setScalar(8); b.aura.scale.setScalar(16); b.solarMaterial.uniforms.time.value = time;
     });
-    if (frame % 3 === 0 || options.forceTrails) this.updateTrails(simulation, time, options);
+    if (time !== this.trailTime || simulation !== this.trailSimulation || options.forceTrails) {
+      this.updateTrails(simulation, time, options);
+      this.trailTime = time; this.trailSimulation = simulation;
+    }
     this.controls.autoRotate = options.autoRotate;
     if (options.follow) {
       const center = state.positions.reduce((a, p, i) => a.addScaledVector(new THREE.Vector3(...p), state.masses[i]), new THREE.Vector3()).divideScalar(state.masses.reduce((a, b) => a + b, 0));
@@ -274,21 +335,15 @@ export class GravityScene {
     this.controls.update(); this.cosmos.position.copy(this.camera.position);
     if (this.style === 'cosmic') this.composer.render(); else this.renderer.render(this.scene, this.camera);
   }
-  updateTrails(simulation, time, options) {
+  updateTrails(simulation: Simulation, time: number, options: ViewOptions) {
     this.trails.forEach((trail, i) => {
       trail.line.visible = options.trails && time > 0;
-      if (!trail.line.visible) return;
-      const {positions, opacityPairs} = sampleTrail(simulation, time, options.trailLength, i);
+      if (!trail.line.visible) {trail.line.geometry.instanceCount = 0; return;}
+      const samples = sampleTrail(simulation, time, options.trailLength, i);
       const trailColor = this.style === 'abstract' ? trail.color.clone().multiplyScalar(.4) : trail.color;
       trail.line.material.color.copy(trailColor);
-      if (positions.length >= 6) {
-        const geometry = trail.line.geometry;
-        geometry.setPositions(positions);
-        const opacityBuffer = new THREE.InstancedInterleavedBuffer(opacityPairs, 2, 1);
-        geometry.setAttribute('instanceOpacityStart', new THREE.InterleavedBufferAttribute(opacityBuffer, 1, 0));
-        geometry.setAttribute('instanceOpacityEnd', new THREE.InterleavedBufferAttribute(opacityBuffer, 1, 1));
-      }
+      updateTrailGeometry(trail.line.geometry, samples);
     });
   }
-  project(position) {const v = new THREE.Vector3(...position).project(this.camera); const {width, height} = this.container.getBoundingClientRect(); return {x: (v.x * .5 + .5) * width, y: (-v.y * .5 + .5) * height, visible: v.z < 1 && v.z > -1 && Math.abs(v.x) < .97 && Math.abs(v.y) < .9};}
+  project(position: Vector3Tuple) {const v = new THREE.Vector3(...position).project(this.camera); const {width, height} = this.container.getBoundingClientRect(); return {x: (v.x * .5 + .5) * width, y: (-v.y * .5 + .5) * height, visible: v.z < 1 && v.z > -1 && Math.abs(v.x) < .97 && Math.abs(v.y) < .9};}
 }
