@@ -13,16 +13,31 @@ npm run dev
 
 Open the printed local URL. To try it on a phone on the same Wi-Fi, open the printed Network URL. Production assets are self-contained in `dist` after `npm run build` (fonts gracefully fall back to system fonts if offline).
 
+## GitHub Pages
+
+The site is deployed at [rybicki.io/three-body-lab/](https://rybicki.io/three-body-lab/). The GitHub Actions workflow in `.github/workflows/deploy-pages.yml` tests, type checks, builds, and deploys each push to `main`. It can also be run manually from the repository's Actions tab.
+
+Pages uses the account's existing `rybicki.io` domain. This project does not need its own `CNAME` file. The workflow sets `VITE_BASE_PATH` to the repository path so assets and design links work under `/three-body-lab/`; ordinary builds and local development default to `/`.
+
+To build and preview the Pages version locally:
+
+```sh
+VITE_BASE_PATH=/three-body-lab/ npm run build
+VITE_BASE_PATH=/three-body-lab/ npm run preview
+```
+
+Open `/three-body-lab/` on the printed preview server URL.
+
 ## Design editions
 
 The original interface is at `/`. Separate front ends share the same simulator and controls:
 
-- `/bauhaus/`: geometric composition, primary colors, Outfit typography, and hard shadows.
-- `/neo-brutalism/`: cream paper, highlighter colors, heavy borders, outlined type, and sticker motifs.
-- `/sketch/`: handwritten type, wobbly frames, paper texture, tape, and scribbled accents.
-- `/newsprint/`: a serif newspaper masthead, ruled editorial columns, paper texture, and monochrome controls.
+- [`/bauhaus/`](https://rybicki.io/three-body-lab/bauhaus/): geometric composition, primary colors, Outfit typography, and hard shadows.
+- [`/neo-brutalism/`](https://rybicki.io/three-body-lab/neo-brutalism/): cream paper, highlighter colors, heavy borders, outlined type, and sticker motifs.
+- [`/sketch/`](https://rybicki.io/three-body-lab/sketch/): handwritten type, wobbly frames, paper texture, tape, and scribbled accents.
+- [`/newsprint/`](https://rybicki.io/three-body-lab/newsprint/): a serif newspaper masthead, ruled editorial columns, paper texture, and monochrome controls.
 
-There is no design switcher in the app. The build creates a real index file for each URL so direct links work on static hosting.
+Paths above are relative to the app's base URL (`/` locally, `/three-body-lab/` on GitHub Pages). There is no design switcher in the app. The build creates a real index file for each URL so direct links work on static hosting.
 
 ## Visual worlds
 

@@ -7,7 +7,7 @@ import {createIcons, Orbit, ArrowUpRight, ChevronDown, RotateCcw, Play, Pause, S
 import {GravityScene, BODY_COLORS} from './scene.ts';
 import {Simulation, PRESETS, SAMPLE_DT, MAX_TIME, createInitial, isPresetKey} from './physics.ts';
 import {bindTimeline} from './timeline.ts';
-import {DESIGNS, designFromPath} from './design.ts';
+import {DESIGNS, designFromPath, designHomePath} from './design.ts';
 import {TRAIL_DURATIONS} from './trails.ts';
 import type {PresetKey} from './physics.ts';
 import type {InitialVectors, OrbitPreset, SimulationConfig, Vector3Tuple, ViewOptions} from './types.ts';
@@ -45,7 +45,7 @@ function $(id: string): HTMLElement {
   return element;
 }
 const app = $('app');
-const design = designFromPath(window.location.pathname), designCopy = DESIGNS[design];
+const design = designFromPath(window.location.pathname, import.meta.env.BASE_URL), designCopy = DESIGNS[design];
 document.documentElement.dataset.design = design;
 document.title = designCopy.title;
 if (design === 'newsprint') {
@@ -60,7 +60,7 @@ if (design === 'newsprint') {
   document.head.append(font);
 }
 const brandMark = design === 'bauhaus' ? '<i class="logo-circle"></i><i class="logo-square"></i><i class="logo-triangle"></i>' : icon('orbit');
-const homePath = design === 'original' ? '/' : `/${design}/`;
+const homePath = designHomePath(design, import.meta.env.BASE_URL);
 const isNewsprint = design === 'newsprint';
 
 app.innerHTML = `
