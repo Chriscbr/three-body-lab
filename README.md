@@ -4,7 +4,7 @@ A responsive Three.js gravity simulation with twelve initial configurations, thr
 
 ## Run locally
 
-Use Node.js 22.18 or newer. Application code, build scripts, and tests are TypeScript. Node runs the tests and route build script directly; Vite compiles the browser app.
+Use Node.js 22.18 or newer. Application code, Vite configuration, and tests are TypeScript. Node runs the tests directly; Vite compiles the browser app.
 
 ```sh
 npm install
@@ -17,7 +17,7 @@ Open the printed local URL. To try it on a phone on the same Wi-Fi, open the pri
 
 The site is deployed at [rybicki.io/three-body-lab/](https://rybicki.io/three-body-lab/). The GitHub Actions workflow in `.github/workflows/deploy-pages.yml` tests, type checks, builds, and deploys each push to `main`. It can also be run manually from the repository's Actions tab.
 
-Pages uses the account's existing `rybicki.io` domain. This project does not need its own `CNAME` file. The workflow sets `VITE_BASE_PATH` to the repository path so assets and design links work under `/three-body-lab/`; ordinary builds and local development default to `/`.
+Pages uses the account's existing `rybicki.io` domain. This project does not need its own `CNAME` file. The workflow sets `VITE_BASE_PATH` to the repository path so assets and the home link work under `/three-body-lab/`; ordinary builds and local development default to `/`.
 
 To build and preview the Pages version locally:
 
@@ -28,16 +28,9 @@ VITE_BASE_PATH=/three-body-lab/ npm run preview
 
 Open `/three-body-lab/` on the printed preview server URL.
 
-## Design editions
+## Link previews
 
-The original interface is at `/`. Separate front ends share the same simulator and controls:
-
-- [`/bauhaus/`](https://rybicki.io/three-body-lab/bauhaus/): geometric composition, primary colors, Outfit typography, and hard shadows.
-- [`/neo-brutalism/`](https://rybicki.io/three-body-lab/neo-brutalism/): cream paper, highlighter colors, heavy borders, outlined type, and sticker motifs.
-- [`/sketch/`](https://rybicki.io/three-body-lab/sketch/): handwritten type, wobbly frames, paper texture, tape, and scribbled accents.
-- [`/newsprint/`](https://rybicki.io/three-body-lab/newsprint/): a serif newspaper masthead, ruled editorial columns, paper texture, and monochrome controls.
-
-Paths above are relative to the app's base URL (`/` locally, `/three-body-lab/` on GitHub Pages). There is no design switcher in the app. The build creates a real index file for each URL so direct links work on static hosting.
+`index.html` includes Open Graph and large-image card metadata in the initial HTML so link-preview crawlers can read the title, description, and image without running JavaScript. The image is `public/social-preview.png`, served at an absolute HTTPS URL on GitHub Pages. Its generation prompt is in [docs/social-preview.md](docs/social-preview.md). Update the canonical and preview URLs in `index.html` if the public address changes.
 
 ## Visual worlds
 
@@ -67,4 +60,4 @@ npm test
 npm run build
 ```
 
-Strict type checking covers the app, tests, and build script, and runs automatically before production builds. Shared types in `src/types.ts` describe 3D vectors, simulation state, configuration, trail history, and rendering options. The original interface uses a minimum text size of 12px on desktop and mobile.
+Strict type checking covers the app, tests, and Vite configuration, and runs automatically before production builds. Shared types in `src/types.ts` describe 3D vectors, simulation state, configuration, trail history, and rendering options. The interface uses a minimum text size of 12px on desktop and mobile.

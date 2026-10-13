@@ -1,0 +1,18 @@
+/* Keep controls readable against the lighter abstract scene. */
+.viewport[data-world=abstract] .scene-heading h2{color:#23323c}
+.viewport[data-world=abstract] .scene-top p{color:#465660}
+.viewport[data-world=abstract] .status-chip{color:#214637;background:#edf4ec;border-color:#658b79}
+.viewport[data-world=abstract] .status-chip.chaotic{color:#63451f;background:#f0e2c8;border-color:#a48b67}
+.viewport[data-world=abstract] .scene-actions .icon-button{background:#e9eef0;border-color:#77858c;color:#364b55}
+.viewport[data-world=abstract] .view-controls{background:#e9eef0;border-color:#78888e}
+.viewport[data-world=abstract] .view-button{color:#52636b}
+.viewport[data-world=abstract] .view-button.active{background:#c5d1d4;color:#253b46}
+.viewport[data-world=abstract] .fit-button{color:#374e59;border-color:#99a8ad}
+.viewport[data-world=abstract] .scene-legend{color:#354c57}
+.viewport[data-world=abstract] .orbit-hint{color:#4d626b}
+.viewport[data-world=abstract] .body-label{color:#384b53}
+.viewport[data-world=abstract] .body-label>span{background:#4c616b}
+.viewport[data-world=abstract] .scene-legend i{box-shadow:0 0 0 1px #4f6470}
+
+.studio-thumb{background:linear-gradient(145deg,#66412d,#34291f 50%,#75503b)}
+.abstract-thumb{background-color:#b6bbc0}

@@ -1,13 +1,11 @@
 import './style.css';
-import './themes.css';
-import './newsprint.css';
+import './worlds.css';
 import './compact.css';
 import './base-ui.css';
 import {createIcons, Orbit, ArrowUpRight, ChevronDown, RotateCcw, Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, SlidersHorizontal, X, Info, MousePointer2, Move3d, Crosshair, Camera, Check, ArrowLeft, Github, Keyboard, Plus, Minus} from 'lucide';
 import {GravityScene, BODY_COLORS} from './scene.ts';
 import {Simulation, PRESETS, SAMPLE_DT, MAX_TIME, createInitial, isPresetKey} from './physics.ts';
 import {bindTimeline} from './timeline.ts';
-import {DESIGNS, designFromPath, designHomePath} from './design.ts';
 import {TRAIL_DURATIONS} from './trails.ts';
 import type {PresetKey} from './physics.ts';
 import type {InitialVectors, OrbitPreset, SimulationConfig, Vector3Tuple, ViewOptions} from './types.ts';
@@ -45,27 +43,10 @@ function $(id: string): HTMLElement {
   return element;
 }
 const app = $('app');
-const design = designFromPath(window.location.pathname, import.meta.env.BASE_URL), designCopy = DESIGNS[design];
-document.documentElement.dataset.design = design;
-document.title = designCopy.title;
-if (design === 'newsprint') {
-  const fonts = document.createElement('style');
-  fonts.textContent = '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=block");';
-  document.head.append(fonts);
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) meta.content = '#F9F9F7';
-} else if (design !== 'original') {
-  const font = document.createElement('link'); font.rel = 'stylesheet';
-  font.href = design === 'bauhaus' ? 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap' : design === 'sketch' ? 'https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap' : 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap';
-  document.head.append(font);
-}
-const brandMark = design === 'bauhaus' ? '<i class="logo-circle"></i><i class="logo-square"></i><i class="logo-triangle"></i>' : icon('orbit');
-const homePath = designHomePath(design, import.meta.env.BASE_URL);
-const isNewsprint = design === 'newsprint';
 
 app.innerHTML = `
   <header class="app-header">
-    <a class="brand" href="${homePath}" aria-label="Three Body Lab home">${isNewsprint ? '<span>The Three Body Lab</span>' : `<span class="brand-mark">${brandMark}</span><span>three body<span class="brand-light"> lab</span><span class="brand-dot">.</span></span>`}</a>
+    <a class="brand" href="${import.meta.env.BASE_URL}" aria-label="Three Body Lab home"><span class="brand-mark">${icon('orbit')}</span><span>three body<span class="brand-light"> lab</span><span class="brand-dot">.</span></span></a>
 
     <button class="text-button about-button" id="about-button" aria-label="About the simulation"><span class="about-label">About</span> ${icon('arrow-up-right')}</button>
     <button class="icon-button mobile-config" id="mobile-config" aria-label="Open simulation settings" aria-controls="settings-panel" aria-expanded="false">${icon('sliders-horizontal')}</button>

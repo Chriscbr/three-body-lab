@@ -1,30 +1,8 @@
-/* Keep every edition focused on the simulation and its controls. */
+/* Keep the interface focused on the simulation and its controls. */
 .main-shell{padding-top:24px}
 .workspace{height:calc(100dvh - 156px);max-height:none}
 .app-footer{justify-content:flex-end}
-:root:not([data-design=original]) .main-shell{padding-top:24px}
-:root:not([data-design=original]) .simulation-card,:root:not([data-design=original]) .settings-panel{height:clamp(600px,calc(100dvh - 195px),1000px)}
-:root:not([data-design=original]) .app-footer{justify-content:flex-end;margin-top:18px;padding-top:12px;padding-bottom:12px}
-:root:not([data-design=original]) .settings-content{flex:1}
-:root[data-design=newsprint] .app-header{grid-template-columns:minmax(0,1fr) 190px;height:112px;border-bottom:4px solid var(--ink)}
-:root[data-design=newsprint] .brand{grid-column:1;justify-self:start}
-:root[data-design=newsprint] .about-button{grid-column:2}
-:root[data-design=newsprint] .workspace{border-top:1px solid var(--ink)}
-:root[data-design=newsprint] .simulation-card,:root[data-design=newsprint] .settings-panel{height:clamp(600px,calc(100dvh - 214px),1000px)}
-:root[data-design=newsprint] .settings-heading h2{font-size:28px}
-:root[data-design=newsprint] .app-footer{margin:0;padding:10px 0 14px}
-:root:not([data-design=original]) .simulation-card:fullscreen,:root:not([data-design=original]) .simulation-card.expanded{height:100dvh}
 @media(max-width:760px){
-  .main-shell,:root:not([data-design=original]) .main-shell{padding-top:16px}
+  .main-shell{padding-top:16px}
   .workspace{height:calc(100dvh - 136px);min-height:540px}
-  :root:not([data-design=original]) .simulation-card{height:clamp(580px,calc(100dvh - 156px),900px)}
-  :root:not([data-design=original]) .settings-panel{height:100dvh}
-  :root:not([data-design=original]) .app-footer{margin-top:16px;padding:12px}
-  :root[data-design=newsprint] .app-header{height:84px;grid-template-columns:minmax(0,1fr) 44px 44px}
-  :root[data-design=newsprint] .brand{grid-column:1}
-  :root[data-design=newsprint] .about-button{grid-column:2}
-  :root[data-design=newsprint] .simulation-card{height:clamp(580px,calc(100dvh - 164px),900px)}
-  :root[data-design=newsprint] .settings-panel{height:100dvh}
-  :root[data-design=newsprint] .app-footer{margin:0;padding:14px 0}
-  :root:not([data-design=original]) .simulation-card:fullscreen,:root:not([data-design=original]) .simulation-card.expanded{height:100dvh}
 }
