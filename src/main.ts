@@ -113,7 +113,7 @@ createIcons({icons: iconSet});
 let scene: GravityScene | undefined;
 try {scene = new GravityScene($('viewport'));} catch (error) {console.error(error); $('render-error').hidden = false;}
 
-let simulation: Simulation, preset: PresetKey = 'figure8', currentTime = 0, playing = true, speed = 1, isScrubbing = false;
+let simulation: Simulation, preset: PresetKey = 'chaotic', currentTime = 0, playing = true, speed = 1, isScrubbing = false;
 let custom: InitialVectors | null = null, modified = false, appliedConfig: SimulationConfig = {};
 let toastTimer: number | undefined;
 let previousTimestamp = performance.now(), lastUI = 0;
@@ -161,14 +161,18 @@ function syncDrawerAccessibility() {const hidden = mobileMedia.matches && !$('se
 mobileMedia.addEventListener('change', syncDrawerAccessibility); syncDrawerAccessibility();
 function toggleDrawer(open: boolean) {$('settings-panel').classList.toggle('drawer-open', open); $('drawer-overlay').classList.toggle('show', open); $('mobile-config').setAttribute('aria-expanded', String(open)); syncDrawerAccessibility(); if (mobileMedia.matches) (open ? $('preset') : $('mobile-config')).focus();}
 
-$('preset').addEventListener('change', () => {
-  const value = $('preset').value; if (!isPresetKey(value)) return;
+function loadPreset(value: PresetKey) {
   preset = value; custom = null; modified = false;
+  $('preset').value = preset;
   const masses = PRESETS[preset].initial().masses;
   masses.forEach((m,i) => {$(`mass-${i}`).value = String(m); $(`mass-out-${i}`).textContent = m.toFixed(2);});
   for (const [id, v] of [['gravity', 1], ['velocity', 1], ['perturbation', 0], ['softening', (PRESETS[preset] as OrbitPreset).softening ?? .001]] as const) $(id).value = String(v);
   $('gravity-out').textContent = '1.00'; $('velocity-out').textContent = '1.00×'; $('perturbation-out').textContent = '0.000';
-  loadRun(); notify(`${PRESETS[preset].name} loaded`);
+  loadRun();
+}
+$('preset').addEventListener('change', () => {
+  const value = $('preset').value; if (!isPresetKey(value)) return;
+  loadPreset(value); notify(`${PRESETS[preset].name} loaded`);
 });
 document.querySelectorAll<HTMLElement>('.world-option[data-world]').forEach(button => button.addEventListener('click', () => {
   const world = button.dataset.world;
@@ -234,7 +238,7 @@ window.addEventListener('keydown', e => {
 });
 document.addEventListener('visibilitychange', () => {previousTimestamp = performance.now();});
 
-loadRun();
+loadPreset(preset);
 function animate(timestamp: number) {
   requestAnimationFrame(animate);
   const dt = Math.max(0, Math.min(.06, (timestamp - previousTimestamp) / 1000)); previousTimestamp = timestamp;
