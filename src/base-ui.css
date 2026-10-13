@@ -10,7 +10,7 @@
   .control-note, .range-label, .range-label output,
   .physics-controls .setting-row, .edit-initial, .apply-button,
   .settings-footer, .app-footer, .app-footer .mono, .app-footer .text-button,
-  .about-facts span, .modal .about-fine, .source-link, .shortcut-row, kbd,
+  .shortcut-row, kbd,
   .initial-body legend, .initial-vector, .initial-vector input, .toast
 ) {
   font-size: 12px;
